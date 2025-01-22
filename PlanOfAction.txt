@@ -1,0 +1,28 @@
+1. Design Database
+2. Verify Handle
+3. Game Design
+4. Leaderboard
+
+Game Design:
+	Duel 1:
+		Lockout system 
+		First to solve question take the points and the question becomes locked for the other player
+		Check both players have not solved those questions first
+		Questions will be on the left and right of the lowest rated player
+		Time: 1 hr
+		Questions: 4
+
+	Duel 2:
+		Same but no lockout system
+		Each question will lose points overtime so player who solves first gets more points
+
+	Tournament 1:
+		Exact format of duel 1 but for multiple players
+		
+	Tournament 2:
+		Teams of 4 players
+		Players will duel against each other based on their rating ranking in the team
+		Each position will have a rating range requirement
+
+	Tournament 3:
+		Chess Olympiad format
