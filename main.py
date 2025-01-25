@@ -1,6 +1,7 @@
 import discord
 import os
 
+from leaderboard import send_leaderboard
 from userVerification import userRegistration
 from dotenv import load_dotenv 
 load_dotenv() 
@@ -17,10 +18,15 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
+
     if message.content.startswith("$verify"):
         await userRegistration(message)
-
         return
+
+    if message.content.startswith("$leaderboard"):
+        await send_leaderboard(message)
+        return
+
     elif message.content.startswith("$duel"):
         return
         
