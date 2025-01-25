@@ -1,7 +1,7 @@
 import discord
 import os
 
-from verifyUser import userRegistration
+from userVerification import userRegistration
 from dotenv import load_dotenv 
 load_dotenv() 
 
