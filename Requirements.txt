@@ -1,8 +1,4 @@
 discord
 leaderboard
-userVerification
 python-dotenv
-json
 requests
-random
-time
