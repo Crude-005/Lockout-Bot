@@ -20,5 +20,5 @@
 
   ![image alt](https://github.com/Crude-005/Lockout-Bot/blob/8da74e1e96584589891f26d3e5e1107703b4126a/7fb5e1c6-5463-4583-807b-140fe90e67a7.jpeg)
 
- 6. in the .env file enter :"BOT_TOKEN:<your token that you copied>"
+ 6. in the .env file enter :"BOT_TOKEN:<your_token_that_you_copied>"
 
