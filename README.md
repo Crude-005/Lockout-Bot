@@ -19,3 +19,4 @@
 # 4. go to the bottom of the page(0Auth2) : copy the generated url , send it to chirag to get your bot  added
 # 5. if you want the token(you want it , trust me): go to 'Bot'; click on Reset Token ; copy the Token and add it to the '.env file that you created earlier'
 # 6. in the .env file enter :"BOT_TOKEN:<your token that you copied>"
+![image alt](https://github.com/Crude-005/Lockout-Bot/blob/8da74e1e96584589891f26d3e5e1107703b4126a/7fb5e1c6-5463-4583-807b-140fe90e67a7.jpeg)
