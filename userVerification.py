@@ -1,6 +1,8 @@
 import requests
 from random import choice
 from time import sleep, time
+import asyncio
+
 
 # ****************************************************************
 # NEED TO WORK ON DATABASE VERIFICATION AFTER DATABASE CREATION
@@ -84,10 +86,10 @@ def get_user_submissions(handle,from1 = 1,count = 1) -> list[bool,str]:
 
 
 
-def registerUser(message , problem):
+async def registerUser(message , problem):
     handle = message.content.split(" ")[1]
 
-    for _ in range(60):
+    for _ in range(120):
         userSubmissionInformation = get_user_submissions(handle)
         if not userSubmissionInformation[0]:
             print(userSubmissionInformation[1])
@@ -104,9 +106,8 @@ def registerUser(message , problem):
                 # ****************************************************************
                 # Need to send a message for wrong submission
                 # ****************************************************************
-
                 pass
-        sleep(1)
+        await asyncio.sleep(1)
         
     else:
         return [False,"User could not be registered"]
@@ -140,7 +141,7 @@ async def userRegistration(message):
     # ****************************************************************
     
     await message_id.edit(content = f"registration in progress. Problem is {problem[1][0]}") 
-    userRegisterMessage = registerUser(message , problem[1])
+    userRegisterMessage = await registerUser(message , problem[1])
     if userRegisterMessage[0]:
         await message_id.edit(content = f"User has been registered")
     else:
