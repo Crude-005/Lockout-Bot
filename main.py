@@ -1,54 +1,81 @@
-import os
 import discord
-from discord.ext import commands
-from dotenv import load_dotenv
-from functions import DuelsDatabase
+import os
 
+from leaderboard import send_leaderboard
+from userVerification import userRegistration
+from dotenv import load_dotenv
+from duel import initiate_duel
+from duelsData import create_duel, accept_duel, get_pending_duel
 load_dotenv()
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
-db = DuelsDatabase()
+client = discord.Client(intents=discord.Intents.all())
 
-@bot.event
+@client.event
 async def on_ready():
-    print(f'{bot.user} has connected to Discord!')
+    print("we have logged in as ",client.user)
 
-@bot.command(name='startduel')
-async def start_duel(ctx, player2: discord.Member, p1_rating: int, p2_rating: int, *questions):
-    duel_id = db.create_duel(
-        ctx.guild.id,
-        ctx.author.id,
-        p1_rating,
-        player2.id,
-        p2_rating,
-        list(questions)
-    )
-    await ctx.send(f'Duel started! ID: {duel_id}')
+@client.event
+async def on_message(message):
+    if message.author == client.user:
+        return
 
-@bot.command(name='endduel')
-async def end_duel(ctx, winner: discord.Member, score: str):
-    duel = db.get_ongoing_duel(ctx.guild.id)
-    if not duel:
-        await ctx.send('No ongoing duel found!')
+    if message.content.startswith("$verify"):
+        await userRegistration(message)
+        return
+
+    if message.content.startswith("$duel"):
+        if len(message.mentions) != 1:
+            await message.channel.send("Please mention exactly one user to challenge them to a duel.")
+            return
+
+        challenger = message.author
+        challenged = message.mentions[0]
+
+        if challenger == challenged:
+            await message.channel.send("You cannot duel yourself!")
+            return
+
+        await message.channel.send(f"Initiating duel between {challenger.name} and {challenged.name}")  # Debug message
+        await initiate_duel(challenger, challenged, message.channel)
+
+    if message.content.startswith("$leaderboard"):
+        await send_leaderboard(message)
         return
     
-    duel_id = f"{ctx.guild.id}_{duel['player1_id']}_{duel['player2_id']}"
-    db.end_duel(ctx.guild.id, duel_id, winner.id, score)
-    await ctx.send(f'Duel ended! Winner: {winner.mention}')
-
-@bot.command(name='duelhistory')
-async def duel_history(ctx):
-    history = db.get_duel_history(ctx.guild.id)
-    if not history:
-        await ctx.send('No duel history found!')
+    elif message.content.startswith("$duel"):
+        parts = message.content.split()
+        if len(parts) != 2 or not message.mentions:
+            await message.channel.send("Usage: `$duel @opponent`")
+            return
+        
+        opponent = message.mentions[0]
+        duel_id = create_duel(message.guild.id, message.author.id, opponent.id)
+        
+        await message.channel.send(
+            f"{opponent.mention}, you have been challenged by {message.author.mention}! "
+            f"Type `$acceptduel @{message.author}` to accept."
+        )
         return
-    
-    history_text = '\n'.join([
-        f"Duel {h['duel_id']}: {h['status']}, Winner: {h['winner']}, Score: {h['score']}"
-        for h in history
-    ])
-    await ctx.send(f'Duel History:\n{history_text}')
 
-bot.run(os.getenv('DISCORD_TOKEN'))
+    elif message.content.startswith("$acceptduel"):
+        parts = message.content.split()
+        if len(parts) != 2 or not message.mentions:
+            await message.channel.send("Usage: `$acceptduel @challenger`")
+            return
+        
+        challenger = message.mentions[0]
+        duel = get_pending_duel(message.guild.id, challenger.id, message.author.id)
+
+        if not duel:
+            await message.channel.send("No pending duel found!")
+            return
+        
+        accept_duel(message.guild.id, challenger.id, message.author.id)
+        
+        await message.channel.send(
+            f"Duel accepted between {challenger.mention} and {message.author.mention}! Good luck!"
+        )
+        return
+
+if __name__ == "__main__":
+    client.run(os.getenv('BOT_TOKEN'))
