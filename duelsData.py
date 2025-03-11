@@ -2,6 +2,9 @@ import os
 from datetime import datetime
 from pymongo import MongoClient
 from dotenv import load_dotenv
+import time
+
+from pymongo.errors import DuplicateKeyError
 
 load_dotenv()
 client = MongoClient(os.getenv('MONGODB_URI'))
@@ -12,11 +15,60 @@ def create_server_database(server_id):
         db.create_collection('duels_history')
     if 'ongoing_duels' not in db.list_collection_names():
         db.create_collection('ongoing_duels')
+    if 'players' not in db.list_collection_names():
+        db.create_collection('players')
     return db
+
+def register_player(player_id):
+    db = client['MONGODB_URI']
+    players_table = db['players']
+    players_table.create_index("handle", unique=True)
+    player_data = {
+            # "user_id": str(user_id),
+            "handle": player_id,
+            # "discord_name": discord_name,
+            "rating": 1500,
+            "max_rating": 1500,
+            "elo" : 10,
+            "wins": 0,
+            "losses": 0,
+            "registration_time": time()
+        }
+
+    try:
+        players_table.insert_one(player_data)
+        return f"Player registered with handle : { player_id }!"
+    except DuplicateKeyError:
+        return f"Error: Codeforces handle : '{player_id}' is already registered."
 
 def create_duel(server_id, player1_id, player1_rating, player2_id, player2_rating, questions):
     db = create_server_database(server_id)
     current_time = datetime.now()
+    player1 = db.players.find_one({"user_id": str(player1_id)})
+    player2 = db.players.find_one({"user_id": str(player2_id)})
+
+    #register missing players
+    if not player1:
+        register_player(player1_id)
+        player1 = db.players.find_one({"user_id": str(player1_id)})  # Re-fetch after registration
+
+    if not player2:
+        register_player(player2_id)
+        player2 = db.players.find_one({"user_id": str(player2_id)})  # Re-fetch after registration
+
+    # player1 = db.players.find_one({"user_id": str(player1_id)})
+    # player2 = db.players.find_one({"user_id": str(player2_id)})
+    #
+    # if not player1 or not player2:
+    #     missing_players = []
+    #     if not player1:
+    #         missing_players.append(f"<@{player1_id}>")
+    #     if not player2:
+    #         missing_players.append(f"<@{player2_id}>")
+    #
+    #
+    #     return f"Error: The following players are not registered: {', '.join(missing_players)}. They need to register before starting a duel."
+
     
     duel_data = {
         'server_id': server_id,
@@ -33,7 +85,7 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
         'score': None
     }
     
-    duel_id = f"{server_id}_{player1_id}_{player2_id}"
+    duel_id = f"{server_id}_{player1_id}_{player2_id}" # should change this
     duel_data['duel_id'] = duel_id
 
     db.duels_history.insert_one(duel_data)
