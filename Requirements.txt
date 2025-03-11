@@ -2,3 +2,4 @@ discord
 leaderboard
 python-dotenv
 requests
+pymongo
