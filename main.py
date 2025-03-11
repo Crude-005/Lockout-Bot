@@ -30,6 +30,11 @@ async def on_message(message):
     if message.content.startswith("$verify"):
         await userRegistration(message)
         return
+    
+    if message.content.startswith("$register"):
+        player_id = message.content.split(" ")[1]  # Extract player ID from the command
+        await discord_register_player(player_id, message.channel)
+        return
 
     if message.content.startswith("$duel"):
         if len(message.mentions) != 1:
