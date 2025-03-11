@@ -6,8 +6,12 @@ import time
 
 from pymongo.errors import DuplicateKeyError
 
+from test_db import player1_id
+
 load_dotenv()
 client = MongoClient(os.getenv('MONGODB_URI'))
+
+
 
 def create_server_database(server_id):
     db = client[f'duels_{server_id}']
@@ -18,6 +22,7 @@ def create_server_database(server_id):
     if 'players' not in db.list_collection_names():
         db.create_collection('players')
     return db
+
 
 def register_player(player_id):
     db = client['MONGODB_URI']
@@ -41,13 +46,15 @@ def register_player(player_id):
     except DuplicateKeyError:
         return f"Error: Codeforces handle : '{player_id}' is already registered."
 
+      
 def create_duel(server_id, player1_id, player1_rating, player2_id, player2_rating, questions):
     db = create_server_database(server_id)
     current_time = datetime.now()
     player1 = db.players.find_one({"user_id": str(player1_id)})
     player2 = db.players.find_one({"user_id": str(player2_id)})
 
-    #register missing players
+ #register missing players
+
     if not player1:
         register_player(player1_id)
         player1 = db.players.find_one({"user_id": str(player1_id)})  # Re-fetch after registration
@@ -69,7 +76,7 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
     #
     #     return f"Error: The following players are not registered: {', '.join(missing_players)}. They need to register before starting a duel."
 
-    
+
     duel_data = {
         'server_id': server_id,
         'date': current_time.date().isoformat(),
@@ -85,7 +92,9 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
         'score': None
     }
     
-    duel_id = f"{server_id}_{player1_id}_{player2_id}" # should change this
+
+    duel_id = f"{server_id}_{player1_id}_{player2_id}"# should change this
+
     duel_data['duel_id'] = duel_id
 
     db.duels_history.insert_one(duel_data)
@@ -96,7 +105,7 @@ def accept_duel(server_id, player1_id, player2_id):
     db = client[f'duels_{server_id}']
     
     duel = db.duels_history.find_one({'status': 'pending', 'player1_id': player1_id, 'player2_id': player2_id})
-    
+
     if duel:
         current_time = datetime.now()
         
@@ -138,6 +147,8 @@ def end_duel(server_id, player1_id, player2_id, winner, score):
         )       
         db.ongoing_duels.delete_one(duel_query)
 
+
+
 def get_pending_duel(server_id, player1_id, player2_id):
     db = client[f'duels_{server_id}']
     
@@ -147,3 +158,5 @@ def get_duel_history(server_name):
     db = client[f'duels_{server_name}']
     
     return list(db.duels_history.find())
+
+
