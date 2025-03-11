@@ -24,7 +24,6 @@ def create_server_database(server_id):
     return db
 
 
-
 def register_player(player_id):
     db = client['MONGODB_URI']
     players_table = db['players']
@@ -47,9 +46,7 @@ def register_player(player_id):
     except DuplicateKeyError:
         return f"Error: Codeforces handle : '{player_id}' is already registered."
 
-
-
-
+      
 def create_duel(server_id, player1_id, player1_rating, player2_id, player2_rating, questions):
     db = create_server_database(server_id)
     current_time = datetime.now()
@@ -57,6 +54,7 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
     player2 = db.players.find_one({"user_id": str(player2_id)})
 
  #register missing players
+
     if not player1:
         register_player(player1_id)
         player1 = db.players.find_one({"user_id": str(player1_id)})  # Re-fetch after registration
@@ -78,6 +76,7 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
     #
     #     return f"Error: The following players are not registered: {', '.join(missing_players)}. They need to register before starting a duel."
 
+
     duel_data = {
         'server_id': server_id,
         'date': current_time.date().isoformat(),
@@ -93,7 +92,9 @@ def create_duel(server_id, player1_id, player1_rating, player2_id, player2_ratin
         'score': None
     }
     
+
     duel_id = f"{server_id}_{player1_id}_{player2_id}"# should change this
+
     duel_data['duel_id'] = duel_id
 
     db.duels_history.insert_one(duel_data)
